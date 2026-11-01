@@ -1,56 +1,101 @@
-# Welcome to your Expo app 👋
+# Newsfeed Aggregator
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A clean, dark-themed news reader for Android that pulls your favorite sources into a single feed. Built with React Native and Expo.
 
-## Get started
+> **Status:** Early development. The core UI is in place and currently runs on mock data. Features listed under [Roadmap](#roadmap) are planned, not yet implemented.
 
-1. Install dependencies
+## What it does
 
-   ```bash
-   npm install
-   ```
+Newsfeed Aggregator is meant to be a fast, minimal reader for people who follow multiple publications and blogs. Instead of jumping between sites, you get one scrollable feed of articles, each showing its source, publish time, headline, and a short snippet.
 
-2. Start the app
+**Currently working**
 
-   ```bash
-   npx expo start
-   ```
+- Main feed screen with article cards (source, timestamp, title, snippet)
+- Custom header with menu button, centered page title, and search button
+- Dark theme styled with Tailwind classes via NativeWind
 
-In the output, you'll find options to open the app in a
+**Planned**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Real feeds: add RSS/Atom sources and fetch live articles
+- Navigation drawer opened from the header menu button
+- Search across articles and sources
+- Article detail / reader view
+- Local-first storage so your feed and sources work offline
+- OPML import and export for moving subscriptions in and out
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Tech stack
 
-## Get a fresh project
+- [Expo](https://expo.dev) (SDK with Expo Router for file-based routing)
+- [React Native](https://reactnative.dev) with TypeScript
+- [NativeWind](https://www.nativewind.dev) v4 + Tailwind CSS v3 for styling
+- [`@expo/vector-icons`](https://docs.expo.dev/guides/icons/) for icons
+- [`react-native-safe-area-context`](https://github.com/th3rdwave/react-native-safe-area-context) for safe area handling
 
-When you're ready, run:
+## Getting started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org) (an LTS release is recommended)
+- The [Expo Go](https://expo.dev/go) app on a device, or an Android emulator via Android Studio
+
+### Install and run
 
 ```bash
-npm run reset-project
+# Install dependencies
+npm install
+
+# Start the dev server (clear the Metro cache on first run)
+npx expo start -c
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Then press **`a`** in the terminal to open the app on an Android emulator, or scan the QR code with Expo Go on a physical device.
 
-### Other setup steps
+If the emulator can't reach the dev server, try:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npx expo start -c --localhost
+adb reverse tcp:8081 tcp:8081
+```
 
-## Learn more
+## Project structure
 
-To learn more about developing your project with Expo, look at the following resources:
+```
+.
+├── src/
+│   ├── app/                # Screens and layouts (Expo Router)
+│   │   ├── _layout.tsx     # Root layout, imports global.css
+│   │   └── index.tsx       # Main feed screen
+│   ├── components/
+│   │   └── header.tsx      # App header (menu, title, search)
+│   └── global.css          # Tailwind directives
+├── tailwind.config.js
+├── metro.config.js         # NativeWind wiring (points to src/global.css)
+├── babel.config.js
+└── package.json
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Styling notes
 
-## Join the community
+Styles use NativeWind `className` props. If you add new folders containing components, include them in the `content` array of `tailwind.config.js`, otherwise their classes won't be generated:
 
-Join our community of developers creating universal apps.
+```js
+content: [
+  "./src/app/**/*.{js,jsx,ts,tsx}",
+  "./src/components/**/*.{js,jsx,ts,tsx}",
+],
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Also make sure the `input` path in `metro.config.js` matches the actual location of `global.css`.
+
+## Roadmap
+
+- [ ] Replace mock data with real RSS/Atom fetching
+- [ ] Drawer navigation
+- [ ] Search
+- [ ] Article reader view
+- [ ] Offline storage
+- [ ] OPML import/export
+
+## License
+
+Not yet specified.
