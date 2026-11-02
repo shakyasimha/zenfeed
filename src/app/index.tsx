@@ -1,5 +1,7 @@
 import ArticleCard, { Article } from "@/components/ArticleCard";
 import Header from "@/components/header";
+import { useDrawer } from "@/context/drawer";
+import { API_URL } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,9 +13,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// API url
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://192.168.1.67:8000";
 
 // Function for fetching articles
 async function fetchArticles(): Promise<Article[]> {
@@ -28,6 +27,8 @@ async function fetchArticles(): Promise<Article[]> {
 }
 
 export default function HomeScreen() {
+  const { toggle, selectedSource } = useDrawer();
+
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -58,11 +59,16 @@ export default function HomeScreen() {
     );
   };
 
+  // null selectedSource means "Main Feed" (all sources)
+  const visibleArticles = selectedSource
+    ? articles.filter((a) => a.source_id === selectedSource.id)
+    : articles;
+
   return (
     <SafeAreaView className="flex-1 bg-zinc-950">
       <Header
-        title="Main Page"
-        onPressMenu={() => console.log("Open Drawer")}
+        title={selectedSource?.name ?? "Main Feed"}
+        onPressMenu={toggle}
         onPressSearch={() => console.log("Open Search")}
       />
 
@@ -85,7 +91,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <FlatList
-          data={articles}
+          data={visibleArticles}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <ArticleCard article={item} onPress={openArticle} />
@@ -102,7 +108,9 @@ export default function HomeScreen() {
           }
           ListEmptyComponent={
             <Text className="text-zinc-500 text-center mt-16">
-              No articles yet.
+              {selectedSource
+                ? `No articles from ${selectedSource.name} yet.`
+                : "No articles yet."}
             </Text>
           }
         />

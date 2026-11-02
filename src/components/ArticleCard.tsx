@@ -5,6 +5,7 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export interface Article {
   id: number;
+  source_id: number;
   title: string;
   url: string; // add this
   snippet: string | null;
