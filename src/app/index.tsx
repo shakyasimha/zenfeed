@@ -1,82 +1,112 @@
+import ArticleCard, { Article } from "@/components/ArticleCard";
 import Header from "@/components/header";
-import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Linking,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Mock data to visualize the feed
-interface Article {
-  id: string;
-  source: string;
-  time: string;
-  title: string;
-  snippet: string;
+// API url
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://192.168.1.67:8000";
+
+// Function for fetching articles
+async function fetchArticles(): Promise<Article[]> {
+  const res = await fetch(`${API_URL}/api/articles`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+
+  const json = await res.json();
+  // Handles both a plain array and Laravel's paginated { data: [...] } shape.
+  return Array.isArray(json) ? json : (json.data ?? []);
 }
 
-const MOCK_FEED: Article[] = [
-  {
-    id: "1",
-    source: "TechCrunch",
-    time: "12m ago",
-    title: "Expo SDK 58 officially drops with next-gen React Compiler support",
-    snippet:
-      "Exploring the newest performance boosts, simplified bundle configurations, and streamlined NativeWind integrations.",
-  },
-  {
-    id: "2",
-    source: "Hacker News",
-    time: "45m ago",
-    title: "Show HN: A lightning-fast local RSS reader built for Android",
-    snippet:
-      "Zero telemetry, instant OPML imports, and a minimalist design focused entirely on readability.",
-  },
-  {
-    id: "3",
-    source: "The Verge",
-    time: "2h ago",
-    title:
-      "The shift toward local-first software and offline data synchronization",
-    snippet:
-      "Why developers and users are moving away from cloud-dependent tools in favor of resilient local databases.",
-  },
-];
-
 export default function HomeScreen() {
-  const [articles, setArticles] = useState<Article[]>(MOCK_FEED);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const renderItem = ({ item }: { item: Article }) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mb-3 active:bg-zinc-850"
-      onPress={() => console.log(`Selected article: ${item.title}`)}
-    >
-      {/* Card Header: Source & Timestamp */}
-      <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">
-          {item.source}
-        </Text>
-        <Text className="text-xs text-zinc-500">{item.time}</Text>
-      </View>
+  const load = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
 
-      {/* Article Title */}
-      <Text className="text-base font-bold text-zinc-100 mb-1 leading-snug">
-        {item.title}
-      </Text>
+    try {
+      setArticles(await fetchArticles());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
-      {/* Article Snippet */}
-      <Text className="text-sm text-zinc-400 leading-normal" numberOfLines={2}>
-        {item.snippet}
-      </Text>
-    </TouchableOpacity>
-  );
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const openArticle = (article: Article) => {
+    Linking.openURL(article.url).catch(() =>
+      console.log("Could not open", article.url),
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-950">
-      {/* Header */}
       <Header
         title="Main Page"
         onPressMenu={() => console.log("Open Drawer")}
         onPressSearch={() => console.log("Open Search")}
       />
+
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#818cf8" />
+        </View>
+      ) : error && articles.length === 0 ? (
+        <View className="flex-1 items-center justify-center px-8 gap-3">
+          <Text className="text-zinc-200 text-base font-semibold">
+            Couldn't load articles
+          </Text>
+          <Text className="text-zinc-500 text-sm text-center">{error}</Text>
+          <TouchableOpacity
+            onPress={() => load()}
+            className="mt-2 px-5 py-2.5 rounded-xl bg-indigo-500"
+          >
+            <Text className="text-white font-semibold">Try again</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={articles}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={({ item }) => (
+            <ArticleCard article={item} onPress={openArticle} />
+          )}
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => load(true)}
+              tintColor="#818cf8"
+              colors={["#818cf8"]}
+            />
+          }
+          ListEmptyComponent={
+            <Text className="text-zinc-500 text-center mt-16">
+              No articles yet.
+            </Text>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
