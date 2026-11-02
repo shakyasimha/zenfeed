@@ -5,6 +5,7 @@ export interface Source {
   id: number;
   name: string;
   url: string;
+  icon_url?: string | null;
   is_active?: boolean;
 }
 
