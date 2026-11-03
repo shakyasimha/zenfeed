@@ -1,27 +1,18 @@
 // src/components/ArticleCard.tsx
+import type { Article } from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
-
-export interface Article {
-  id: number;
-  source_id: number;
-  title: string;
-  url: string; // add this
-  snippet: string | null;
-  image_url: string | null;
-  published_at: string;
-  source: { name: string };
-}
 
 interface ArticleCardProps {
   article: Article;
   onPress?: (article: Article) => void;
 }
 
-// The API sends "YYYY-MM-DD HH:mm:ss" with no timezone marker.
-// Your created_at values show the server is on UTC, so parse it as UTC.
-function formatPublished(value: string): string {
+// The API sends "YYYY-MM-DD HH:mm:ss" in UTC with no timezone marker.
+function formatPublished(value?: string | null): string {
+  if (!value) return "";
+
   const iso = value.includes("T") ? value : value.replace(" ", "T") + "Z";
   const date = new Date(iso);
   if (isNaN(date.getTime())) return "";
@@ -41,6 +32,26 @@ function formatPublished(value: string): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+// Shown when an article has no image (or it fails to load): the source's icon
+function ImagePlaceholder({ article }: { article: Article }) {
+  const [iconFailed, setIconFailed] = useState(false);
+  const iconUrl = article.source?.icon_url;
+
+  return (
+    <View className="w-full aspect-video bg-zinc-800 items-center justify-center">
+      {iconUrl && !iconFailed ? (
+        <Image
+          source={{ uri: iconUrl }}
+          onError={() => setIconFailed(true)}
+          className="w-16 h-16 rounded-2xl opacity-90"
+        />
+      ) : (
+        <Ionicons name="newspaper-outline" size={32} color="#52525b" />
+      )}
+    </View>
+  );
+}
+
 export default function ArticleCard({ article, onPress }: ArticleCardProps) {
   const { title, snippet, image_url, published_at, source } = article;
   const [imageFailed, setImageFailed] = useState(false);
@@ -54,7 +65,6 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
       onPress={() => onPress?.(article)}
       className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-4"
     >
-      {/* Image (or placeholder when missing or broken) */}
       {hasImage ? (
         <Image
           source={{ uri: image_url }}
@@ -63,13 +73,10 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
           className="w-full aspect-video bg-zinc-800"
         />
       ) : (
-        <View className="w-full aspect-video bg-zinc-800 items-center justify-center">
-          <Ionicons name="image-outline" size={32} color="#52525b" />
-        </View>
+        <ImagePlaceholder article={article} />
       )}
 
       <View className="p-4">
-        {/* Title */}
         <Text
           className="text-base font-bold text-zinc-100 leading-snug"
           numberOfLines={3}
@@ -77,7 +84,6 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
           {title}
         </Text>
 
-        {/* Snippet (skipped when null) */}
         {!!snippet && (
           <Text
             className="text-sm text-zinc-400 leading-normal mt-2"
@@ -87,11 +93,12 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
           </Text>
         )}
 
-        {/* Source + published date */}
         <View className="flex-row items-center gap-2 mt-3">
-          <Text className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">
-            {source.name}
-          </Text>
+          {!!source?.name && (
+            <Text className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">
+              {source.name}
+            </Text>
+          )}
           {!!published && (
             <>
               <Text className="text-xs text-zinc-600">•</Text>

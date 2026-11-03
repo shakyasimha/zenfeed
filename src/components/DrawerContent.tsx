@@ -65,6 +65,7 @@ function SourceIcon({ source }: { source: Source }) {
   );
 }
 
+// Loads the drawer with the sources
 export default function DrawerContent() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
