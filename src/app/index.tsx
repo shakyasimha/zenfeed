@@ -66,7 +66,7 @@ export default function HomeScreen() {
   }, [articles, trimmedQuery]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-zinc-950">
+    <SafeAreaView className="flex-1 bg-paper dark:bg-paperDark">
       <Header
         title={selectedSource?.name ?? "Main Feed"}
         onPressMenu={toggle}
@@ -80,15 +80,17 @@ export default function HomeScreen() {
         </View>
       ) : error && articles.length === 0 ? (
         <View className="flex-1 items-center justify-center px-8 gap-3">
-          <Text className="text-zinc-900 dark:text-zinc-200 text-base font-semibold">
+          <Text className="text-base font-dm-bold text-ink dark:text-inkDark">
             Couldn't load articles
           </Text>
-          <Text className="text-zinc-500 text-sm text-center">{error}</Text>
+          <Text className="text-sm font-dm text-ink-muted dark:text-inkDark-muted text-center">
+            {error}
+          </Text>
           <TouchableOpacity
             onPress={() => load()}
-            className="mt-2 px-5 py-2.5 rounded-xl bg-indigo-500"
+            className="mt-2 px-5 py-2.5 rounded-xl bg-indigo-700 dark:bg-indigo-500"
           >
-            <Text className="text-white font-semibold">Try again</Text>
+            <Text className="font-dm-bold text-white">Try again</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -110,7 +112,7 @@ export default function HomeScreen() {
             />
           }
           ListEmptyComponent={
-            <Text className="text-zinc-500 text-center mt-16">
+            <Text className="font-dm text-ink-muted dark:text-inkDark-muted text-center mt-16">
               {trimmedQuery
                 ? `No results for "${trimmedQuery}".`
                 : selectedSource
