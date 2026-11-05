@@ -1,7 +1,5 @@
-export const rawApiUrl =
+export const API_URL =
   process.env.EXPO_PUBLIC_API_URL ?? "http://192.168.1.67:8000";
-
-export const API_URL = rawApiUrl.replace(/\/+$/, "");
 
 export interface Source {
   id: number;
