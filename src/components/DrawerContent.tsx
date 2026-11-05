@@ -2,6 +2,7 @@ import { useDrawer } from "@/context/drawer";
 import { fetchSources, type Source } from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useColorScheme } from "nativewind";
 import { ReactNode, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,13 +26,17 @@ function DrawerItem({ label, selected, leading, onPress }: DrawerItemProps) {
     <Pressable
       onPress={onPress}
       className={`flex-row items-center gap-3 px-3 py-2.5 rounded-xl ${
-        selected ? "bg-zinc-800" : "active:bg-zinc-800/60"
+        selected
+          ? "bg-zinc-200 dark:bg-zinc-800"
+          : "active:bg-zinc-200/60 dark:active:bg-zinc-800/60"
       }`}
     >
       {leading}
       <Text
         className={`flex-1 text-base ${
-          selected ? "text-white font-semibold" : "text-zinc-300"
+          selected
+            ? "text-zinc-900 dark:text-white font-semibold"
+            : "text-zinc-700 dark:text-zinc-300"
         }`}
         numberOfLines={1}
       >
@@ -51,14 +56,14 @@ function SourceIcon({ source }: { source: Source }) {
         source={{ uri: source.icon_url }}
         onError={() => setFailed(true)}
         resizeMode="cover"
-        className="w-9 h-9 rounded-full bg-zinc-800"
+        className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800"
       />
     );
   }
 
   return (
-    <View className="w-9 h-9 rounded-full bg-indigo-500/20 items-center justify-center">
-      <Text className="text-indigo-300 font-bold">
+    <View className="w-9 h-9 rounded-full bg-indigo-500/15 dark:bg-indigo-500/20 items-center justify-center">
+      <Text className="text-indigo-600 dark:text-indigo-300 font-bold">
         {source.name.charAt(0).toUpperCase()}
       </Text>
     </View>
@@ -69,6 +74,8 @@ function SourceIcon({ source }: { source: Source }) {
 export default function DrawerContent() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const iconColor = colorScheme === "dark" ? "#e4e4e7" : "#3f3f46";
   const { isOpen, close, selectedSource, selectSource } = useDrawer();
 
   const [sources, setSources] = useState<Source[]>([]);
@@ -105,7 +112,7 @@ export default function DrawerContent() {
     >
       {/* App name */}
       <View className="px-5 py-4">
-        <Text className="text-xl font-bold text-white tracking-tight">
+        <Text className="text-xl font-bold text-zinc-900 dark:text-white tracking-tight">
           ZenFeed
         </Text>
       </View>
@@ -116,8 +123,8 @@ export default function DrawerContent() {
           selected={selectedSource === null}
           onPress={() => goToFeed(null)}
           leading={
-            <View className="w-9 h-9 rounded-full bg-zinc-800 items-center justify-center">
-              <Ionicons name="newspaper-outline" size={18} color="#e4e4e7" />
+            <View className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 items-center justify-center">
+              <Ionicons name="newspaper-outline" size={18} color={iconColor} />
             </View>
           }
         />
@@ -148,13 +155,13 @@ export default function DrawerContent() {
       </ScrollView>
 
       {/* Settings pinned to the bottom */}
-      <View className="px-3 pt-3 border-t border-zinc-800">
+      <View className="px-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
         <DrawerItem
           label="Settings"
           onPress={goToSettings}
           leading={
-            <View className="w-9 h-9 rounded-full bg-zinc-800 items-center justify-center">
-              <Ionicons name="settings-outline" size={18} color="#e4e4e7" />
+            <View className="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 items-center justify-center">
+              <Ionicons name="settings-outline" size={18} color={iconColor} />
             </View>
           }
         />

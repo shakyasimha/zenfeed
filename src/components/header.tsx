@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
+import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
   title: string;
@@ -13,7 +14,7 @@ export default function Header({
   onPressSearch,
 }: HeaderProps) {
   return (
-    <View className="flex-row items-center px-4 py-3 border-b border-zinc-800 bg-zinc-950">
+    <View className="flex-row items-center px-4 py-3 bg-zinc-950">
       {/* Left slot: burger */}
       <View className="w-10 items-start">
         {onPressMenu && (
@@ -38,8 +39,8 @@ export default function Header({
       </Text>
 
       {/* Right slot: search */}
-      <View className="w-10 items-end">
-        {onPressSearch && (
+      <View className="flex-row w-10 items-end">
+        {/* {onPressSearch && (
           <TouchableOpacity
             activeOpacity={0.7}
             className="w-10 h-10 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-800"
@@ -49,7 +50,9 @@ export default function Header({
           >
             <Ionicons name="search" size={20} color="#d4d4d8" />
           </TouchableOpacity>
-        )}
+        )} */}
+
+        <ThemeToggle />
       </View>
     </View>
   );
