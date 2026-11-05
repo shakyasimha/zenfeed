@@ -44,3 +44,16 @@ export async function fetchArticles(
   const json = await res.json();
   return Array.isArray(json) ? json : (json.data ?? []);
 }
+
+export async function refreshArticles(): Promise<void> {
+  const res = await fetch(`${API_URL}/api/articles/refresh`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Refresh failed with status ${res.status}`);
+  }
+}

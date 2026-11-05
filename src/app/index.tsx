@@ -1,7 +1,7 @@
 import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/header";
 import { useDrawer } from "@/context/drawer";
-import { fetchArticles, type Article } from "@/lib/api";
+import { fetchArticles, refreshArticles, type Article } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -28,10 +28,16 @@ export default function HomeScreen() {
     async (isRefresh = false) => {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
+
       setError(null);
 
       try {
-        setArticles(await fetchArticles(sourceId));
+        if (isRefresh) {
+          await refreshArticles();
+        }
+
+        const updatedArticles = await fetchArticles(sourceId);
+        setArticles(updatedArticles);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong");
       } finally {
