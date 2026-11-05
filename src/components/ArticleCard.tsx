@@ -1,6 +1,7 @@
 // src/components/ArticleCard.tsx
 import type { Article } from "@/lib/api";
 import { Ionicons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
@@ -35,10 +36,11 @@ function formatPublished(value?: string | null): string {
 // Shown when an article has no image (or it fails to load): the source's icon
 function ImagePlaceholder({ article }: { article: Article }) {
   const [iconFailed, setIconFailed] = useState(false);
+  const { colorScheme } = useColorScheme();
   const iconUrl = article.source?.icon_url;
 
   return (
-    <View className="w-full aspect-video bg-zinc-800 items-center justify-center">
+    <View className="w-full aspect-video bg-zinc-200 dark:bg-zinc-800 items-center justify-center">
       {iconUrl && !iconFailed ? (
         <Image
           source={{ uri: iconUrl }}
@@ -46,7 +48,11 @@ function ImagePlaceholder({ article }: { article: Article }) {
           className="w-16 h-16 rounded-2xl opacity-90"
         />
       ) : (
-        <Ionicons name="newspaper-outline" size={32} color="#52525b" />
+        <Ionicons
+          name="newspaper-outline"
+          size={32}
+          color={colorScheme === "dark" ? "#52525b" : "#a1a1aa"}
+        />
       )}
     </View>
   );
@@ -63,14 +69,14 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={() => onPress?.(article)}
-      className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden mb-4"
+      className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden mb-4"
     >
       {hasImage ? (
         <Image
           source={{ uri: image_url }}
           resizeMode="cover"
           onError={() => setImageFailed(true)}
-          className="w-full aspect-video bg-zinc-800"
+          className="w-full aspect-video bg-zinc-200 dark:bg-zinc-800"
         />
       ) : (
         <ImagePlaceholder article={article} />
@@ -78,7 +84,7 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
 
       <View className="p-4">
         <Text
-          className="text-base font-bold text-zinc-100 leading-snug"
+          className="text-base font-bold text-zinc-900 dark:text-zinc-100 leading-snug"
           numberOfLines={3}
         >
           {title}
@@ -86,7 +92,7 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
 
         {!!snippet && (
           <Text
-            className="text-sm text-zinc-400 leading-normal mt-2"
+            className="text-sm text-zinc-600 dark:text-zinc-400 leading-normal mt-2"
             numberOfLines={3}
           >
             {snippet}
@@ -95,13 +101,15 @@ export default function ArticleCard({ article, onPress }: ArticleCardProps) {
 
         <View className="flex-row items-center gap-2 mt-3">
           {!!source?.name && (
-            <Text className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">
+            <Text className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
               {source.name}
             </Text>
           )}
           {!!published && (
             <>
-              <Text className="text-xs text-zinc-600">•</Text>
+              <Text className="text-xs text-zinc-400 dark:text-zinc-600">
+                •
+              </Text>
               <Text className="text-xs text-zinc-500">{published}</Text>
             </>
           )}

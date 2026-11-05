@@ -54,7 +54,7 @@ export default function PushDrawer({ drawer, children }: PushDrawerProps) {
   }));
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#18181b" }}>
+    <View className="flex-1 bg-zinc-100 dark:bg-zinc-900">
       {/* Drawer panel, fixed behind the content */}
       <Animated.View
         style={[
@@ -72,22 +72,19 @@ export default function PushDrawer({ drawer, children }: PushDrawerProps) {
       </Animated.View>
 
       {/* Main content, pushed to the right */}
-      <Animated.View
-        style={[
-          { flex: 1, overflow: "hidden", backgroundColor: "#09090b" },
-          contentStyle,
-        ]}
-      >
-        {children}
+      <Animated.View style={[{ flex: 1, overflow: "hidden" }, contentStyle]}>
+        <View className="flex-1 bg-white dark:bg-zinc-950">
+          {children}
 
-        {/* Tap anywhere on the pushed content to close */}
-        {isOpen && (
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={close}
-            accessibilityLabel="Close menu"
-          />
-        )}
+          {/* Tap anywhere on the pushed content to close */}
+          {isOpen && (
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={close}
+              accessibilityLabel="Close menu"
+            />
+          )}
+        </View>
       </Animated.View>
     </View>
   );

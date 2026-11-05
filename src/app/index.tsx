@@ -1,8 +1,8 @@
-import ArticleCard, { Article } from "@/components/ArticleCard";
+import ArticleCard from "@/components/ArticleCard";
 import Header from "@/components/header";
 import { useDrawer } from "@/context/drawer";
-import { API_URL } from "@/lib/api";
-import { useCallback, useEffect, useState } from "react";
+import { fetchArticles, type Article } from "@/lib/api";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -14,41 +14,35 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Function for fetching articles
-async function fetchArticles(): Promise<Article[]> {
-  const res = await fetch(`${API_URL}/api/articles`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-
-  const json = await res.json();
-  // Handles both a plain array and Laravel's paginated { data: [...] } shape.
-  return Array.isArray(json) ? json : (json.data ?? []);
-}
-
 export default function HomeScreen() {
   const { toggle, selectedSource } = useDrawer();
+  const sourceId = selectedSource?.id ?? null;
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    setError(null);
+  const load = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      setError(null);
 
-    try {
-      setArticles(await fetchArticles());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      try {
+        setArticles(await fetchArticles(sourceId));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Something went wrong");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [sourceId],
+  );
 
+  // Reloads on first render and whenever a different source is selected
   useEffect(() => {
     load();
   }, [load]);
@@ -59,17 +53,25 @@ export default function HomeScreen() {
     );
   };
 
-  // null selectedSource means "Main Feed" (all sources)
-  const visibleArticles = selectedSource
-    ? articles.filter((a) => a.source_id === selectedSource.id)
-    : articles;
+  // Client-side search over the loaded articles (title + snippet)
+  const trimmedQuery = query.trim();
+  const visibleArticles = useMemo(() => {
+    if (!trimmedQuery) return articles;
+    const q = trimmedQuery.toLowerCase();
+    return articles.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        (a.snippet ?? "").toLowerCase().includes(q),
+    );
+  }, [articles, trimmedQuery]);
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950">
+    <SafeAreaView className="flex-1 bg-white dark:bg-zinc-950">
       <Header
         title={selectedSource?.name ?? "Main Feed"}
         onPressMenu={toggle}
-        onPressSearch={() => console.log("Open Search")}
+        searchQuery={query}
+        onSearchChange={setQuery}
       />
 
       {loading ? (
@@ -78,7 +80,7 @@ export default function HomeScreen() {
         </View>
       ) : error && articles.length === 0 ? (
         <View className="flex-1 items-center justify-center px-8 gap-3">
-          <Text className="text-zinc-200 text-base font-semibold">
+          <Text className="text-zinc-900 dark:text-zinc-200 text-base font-semibold">
             Couldn't load articles
           </Text>
           <Text className="text-zinc-500 text-sm text-center">{error}</Text>
@@ -98,6 +100,7 @@ export default function HomeScreen() {
           )}
           contentContainerStyle={{ padding: 16 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -108,9 +111,11 @@ export default function HomeScreen() {
           }
           ListEmptyComponent={
             <Text className="text-zinc-500 text-center mt-16">
-              {selectedSource
-                ? `No articles from ${selectedSource.name} yet.`
-                : "No articles yet."}
+              {trimmedQuery
+                ? `No results for "${trimmedQuery}".`
+                : selectedSource
+                  ? `No articles from ${selectedSource.name} yet.`
+                  : "No articles yet."}
             </Text>
           }
         />

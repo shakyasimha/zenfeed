@@ -4,24 +4,16 @@ import { DrawerProvider } from "@/context/drawer";
 import { Stack } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useEffect } from "react";
-import { Appearance, View } from "react-native";
+import { View } from "react-native";
 import "../global.css";
 
 export default function RootLayout() {
   const { setColorScheme } = useColorScheme();
 
-  // Start by following the system theme on every launch
+  // Follow the system theme on every launch
   useEffect(() => {
     setColorScheme("system");
   }, [setColorScheme]);
-
-  // Temporary: log system theme changes to see if the OS reports them
-  useEffect(() => {
-    const sub = Appearance.addChangeListener(({ colorScheme }) =>
-      console.warn("system scheme:", colorScheme),
-    );
-    return () => sub.remove();
-  }, []);
 
   return (
     <DrawerProvider>
